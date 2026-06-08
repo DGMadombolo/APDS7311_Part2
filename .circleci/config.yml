@@ -1,27 +1,63 @@
 version: 2.1
 
 jobs:
-  build-and-test:
+  build-test-sonar:
     docker:
       - image: mcr.microsoft.com/dotnet/sdk:9.0
+
     steps:
       - checkout
+
       - restore_cache:
           keys:
-            - nuget-{{ checksum "APDS7311_Part2/APDS7311_Part2.csproj" }}
+            - nuget-{{ checksum "APDS7311_Part2/APDS7311_Part2.csproj" }}-{{ checksum "APDS7311_Part2.Tests/APDS7311_Part2.Tests.csproj" }}
             - nuget-
+
       - run:
-          name: Restore dependencies
-          command: dotnet restore APDS7311_Part2/APDS7311_Part2.csproj
+          name: Install SonarScanner
+          command: |
+            dotnet tool install --global dotnet-sonarscanner
+            echo 'export PATH="$PATH:/root/.dotnet/tools"' >> $BASH_ENV
+            source $BASH_ENV
+
+      - run:
+          name: Begin SonarCloud Analysis
+          command: |
+            dotnet sonarscanner begin \
+              /k:"$SONAR_PROJECT_KEY" \
+              /o:"$SONAR_ORG" \
+              /d:sonar.token="$SONAR_TOKEN" \
+              /d:sonar.host.url="https://sonarcloud.io"
+
+      - run:
+          name: Restore Dependencies
+          command: dotnet restore APDS7311_Part2.sln
+
       - save_cache:
-          key: nuget-{{ checksum "APDS7311_Part2/APDS7311_Part2.csproj" }}
+          key: nuget-{{ checksum "APDS7311_Part2/APDS7311_Part2.csproj" }}-{{ checksum "APDS7311_Part2.Tests/APDS7311_Part2.Tests.csproj" }}
           paths:
             - ~/.nuget/packages
+
       - run:
-          name: Build
-          command: dotnet build APDS7311_Part2/APDS7311_Part2.csproj --no-restore --configuration Release
+          name: Build Application
+          command: dotnet build APDS7311_Part2.sln --configuration Release --no-restore
+
+      - run:
+          name: Run Unit Tests
+          command: |
+            dotnet test APDS7311_Part2.Tests/APDS7311_Part2.Tests.csproj \
+              --configuration Release \
+              --no-build
+
+      - run:
+          name: End SonarCloud Analysis
+          command: |
+            dotnet sonarscanner end \
+              /d:sonar.token="$SONAR_TOKEN"
 
 workflows:
-  build:
+  version: 2
+
+  build-test-sonar-workflow:
     jobs:
-      - build-and-test
+      - build-test-sonar
