@@ -10,7 +10,7 @@ jobs:
 
       - restore_cache:
           keys:
-            - nuget-{{ checksum "APDS7311_Part2/APDS7311_Part2.csproj" }}
+            - nuget-{{ checksum "APDS7311_Part2/APDS7311_Part2.csproj" }}-{{ checksum "APDS7311_Part2.Tests/APDS7311_Part2.Tests.csproj" }}
             - nuget-
 
       - run:
@@ -31,16 +31,16 @@ jobs:
 
       - run:
           name: Restore Dependencies
-          command: dotnet restore APDS7311_Part2/APDS7311_Part2.csproj
+          command: dotnet restore APDS7311_Part2.sln
 
       - save_cache:
-          key: nuget-{{ checksum "APDS7311_Part2/APDS7311_Part2.csproj" }}
+          key: nuget-{{ checksum "APDS7311_Part2/APDS7311_Part2.csproj" }}-{{ checksum "APDS7311_Part2.Tests/APDS7311_Part2.Tests.csproj" }}
           paths:
             - ~/.nuget/packages
 
       - run:
           name: Build Application
-          command: dotnet build APDS7311_Part2/APDS7311_Part2.csproj --configuration Release --no-restore
+          command: dotnet build APDS7311_Part2.sln --configuration Release --no-restore
 
       - run:
           name: Run Unit Tests
