@@ -1,0 +1,27 @@
+version: 2.1
+
+jobs:
+  build-and-test:
+    docker:
+      - image: mcr.microsoft.com/dotnet/sdk:9.0
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - nuget-{{ checksum "APDS7311_Part2/APDS7311_Part2.csproj" }}
+            - nuget-
+      - run:
+          name: Restore dependencies
+          command: dotnet restore APDS7311_Part2/APDS7311_Part2.csproj
+      - save_cache:
+          key: nuget-{{ checksum "APDS7311_Part2/APDS7311_Part2.csproj" }}
+          paths:
+            - ~/.nuget/packages
+      - run:
+          name: Build
+          command: dotnet build APDS7311_Part2/APDS7311_Part2.csproj --no-restore --configuration Release
+
+workflows:
+  build:
+    jobs:
+      - build-and-test
