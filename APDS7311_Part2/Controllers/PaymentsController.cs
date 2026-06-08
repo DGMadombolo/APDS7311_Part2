@@ -1,6 +1,5 @@
 ﻿using APDS7311_Part2.Data;
 using APDS7311_Part2.DTOs;
-using APDS7311_Part2.DTOs.APDS7311_Part2.DTOs;
 using APDS7311_Part2.Models;
 using Microsoft.AspNetCore.Mvc;
 
